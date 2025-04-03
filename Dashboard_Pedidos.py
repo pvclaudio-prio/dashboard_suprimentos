@@ -94,7 +94,7 @@ def configurar_ambiente():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     load_dotenv()
     global API_KEY
-    API_KEY = st.secrets["OPENAI_API_KEY"]
+    API_KEY = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
     openai.api_key = API_KEY
     
 @st.cache_data(show_spinner="🔍 Trazendo dados do Teradata...")
@@ -104,6 +104,7 @@ def executar_teradata():
     HOST = "20.185.82.103"
     USER = "cvieira@prio3.com.br"
     PASSWORD = st.secrets["DB_PASSWORD"]
+    PASSWORD = st.secrets.get("DB_PASSWORD", os.getenv("DB_PASSWORD"))
     SCHEMA = "AA_PRD_DDM"
     SCHEMA2 = "AA_PRD_WRK"
 
