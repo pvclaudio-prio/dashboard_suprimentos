@@ -548,9 +548,13 @@ def executar_teradata():
                 return df_po, base_pedidos, df_zmm0018
                 
                 
+    #except Exception as e:
+       # print("Erro na conexão:", e)
+       # return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
     except Exception as e:
-        print("Erro na conexão:", e)
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        st.error(f"❌ Erro na conexão com Teradata: {e}")
+        st.stop()
     
 #Executar Funções de Configuração
 
