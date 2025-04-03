@@ -1054,6 +1054,32 @@ with aba4:
 
     # Converter a coluna de data corretamente
     df_bruto = base_pedidos.copy()
+    
+    if fornecedor != "Todos":
+        df_bruto = df_bruto[df_bruto['Nome Fornecedor'] == fornecedor]
+
+    if area != "Todos":
+        df_bruto = df_bruto[df_bruto['Area Autorizador'] == area]
+
+    if tipo_contabil != "Todos":
+       df_bruto = df_bruto[df_bruto['Tipo Contabil'] == tipo_contabil]
+        
+    if ano_escolhido != 'Todos':
+        df_bruto = df_bruto[df_bruto['Ano'].isin(ano_escolhido)]
+
+    if aprovador != 'Todos':
+        df_bruto = df_bruto[df_bruto['Aprovador Final'] == aprovador]
+        
+    # Verificar se o usuário deixou o filtro vazio ou inválido
+    if not data_pedido or len(data_pedido) != 2 or data_pedido[0] > data_pedido[1]:
+        st.sidebar.warning("Nenhuma data válida foi selecionada. Exibindo todos os dados.")
+    else:
+        # Aplicar filtro de data apenas se válido
+        df_bruto = df_bruto[
+            (df_bruto['Data do Pedido'] >= pd.to_datetime(data_pedido[0])) &
+            (df_bruto['Data do Pedido'] <= pd.to_datetime(data_pedido[1]))
+        ]
+        
     df_bruto.columns = pd.Index([str(col).strip() for col in df_bruto.columns])
     df_bruto.columns = df_bruto.columns.str.replace('–', '-')  # Substitui EN DASH por hífen normal
     df_bruto.columns = df_bruto.columns.str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')  # Remove acentos e caracteres especiais
@@ -1112,39 +1138,27 @@ with aba4:
     # Expansor para seleção de colunas
     with st.expander('Colunas'):
         colunas = st.multiselect('Selecione', list(df_bruto.columns), list(df_bruto.columns))
+    
+    coluna1, coluna2 = st.columns(2)
+    
+    with coluna1:
+        st.metric('Valor Total - R$', formata_numero(df_bruto['Valor Item - R$'].sum(), 'R$'))
+    
+    with coluna2:
+        st.metric('Quantidade de Pedidos', formata_numero(df_bruto['Numero PO'].nunique()))
 
     # Converter `st.date_input()` para datetime
     data_inicio = pd.to_datetime(data_pedido[0])
     data_fim = pd.to_datetime(data_pedido[1])
 
-    # Aplicar os filtros corretamente (permitindo "Todos")
-    dados_filtrados = df_bruto.copy()
-
-    if fornecedor != "Todos":
-        dados_filtrados = dados_filtrados[dados_filtrados['Nome Fornecedor'] == fornecedor]
-
-    if area != "Todos":
-        dados_filtrados = dados_filtrados[dados_filtrados['Area Autorizador'] == area]
-
-    # Filtrar por Data
-    dados_filtrados = dados_filtrados[
-        (dados_filtrados['Data do Pedido'] >= data_inicio) &
-        (dados_filtrados['Data do Pedido'] <= data_fim)
-    ]
-
-    # Filtrar por aprovador
-
-    if aprovador != 'Todos':
-        dados_filtrados = dados_filtrados[dados_filtrados['Aprovador Final'] == aprovador]
-
     # Selecionar apenas as colunas desejadas
-    dados_filtrados = dados_filtrados[colunas]
+    df_bruto = df_bruto[colunas]
 
     # Exibir a tabela filtrada
-    st.dataframe(dados_filtrados)
+    st.dataframe(df_bruto)
 
     # Exibir a quantidade de linhas e colunas filtradas
-    st.markdown(f'A tabela possui :blue[{dados_filtrados.shape[0]}] linhas e :blue[{dados_filtrados.shape[1]}] colunas.')
+    st.markdown(f'A tabela possui :blue[{df_bruto.shape[0]}] linhas e :blue[{df_bruto.shape[1]}] colunas.')
 
     # Input para nome do arquivo
     st.markdown('Escreva o nome do arquivo.')
@@ -1157,7 +1171,7 @@ with aba4:
     with coluna2:
         st.download_button(
         label="Fazer download em Excel",
-        data=converte_excel(dados_filtrados),
+        data=converte_excel(df_bruto),
         file_name=f"{nome_arquivo}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         on_click=mensagem_sucesso,
