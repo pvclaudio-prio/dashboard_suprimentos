@@ -775,7 +775,7 @@ with aba1:
         st.plotly_chart(fig_pedidos_fornecedor, use_container_width = True)
         
     with coluna2:
-        st.metric('Quantidade de Pedidos', formata_numero(df.shape[0]))
+        st.metric('Quantidade de Pedidos', formata_numero(df['Numero PO'].nunique()))
         
         top_areas = pedidos_area.groupby('Area Autorizador')['Valor'].sum().nlargest(numero_fornecedor).index
         pedidos_area_filtrados = pedidos_area[pedidos_area['Area Autorizador'].isin(top_areas)].sort_values(by='Valor', ascending = False)
